@@ -3,18 +3,30 @@ package services
 import (
 	"context"
 	"portsApi/internal/domain"
-	"github.com/google/uuid"
 )
 
+type PortRepository interface {
+	CreateOrUpdatePort(ctx context.Context, port *domain.Port) error
+	CountPorts(ctx context.Context) (int, error)
+	GetPort(ctx context.Context, id string) (*domain.Port, error)
+}
 type PortService struct {
+	repo PortRepository
 }
 
-func NewPortService() PortService {
-	return PortService{}
+func NewPortService(repo PortRepository) PortService {
+	return PortService{
+		repo: repo,
+	}
 }
 
 func (s PortService) GetPort(ctx context.Context, id string) (*domain.Port, error) {
-	randomID := uuid.New().String()
-	return domain.NewPort(randomID, randomID, randomID, randomID, randomID,
-		 []string{randomID}, []string{randomID}, []float64{1.0, 2.0}, randomID, randomID,  nil)
+	return s.repo.GetPort(ctx, id)
+}
+func (s PortService) CountPorts(ctx context.Context) (int, error) {
+	return s.repo.CountPorts(ctx)
+}
+
+func (s PortService) CreateOrUpdatePort(ctx context.Context, port *domain.Port) error {
+	return s.repo.CreateOrUpdatePort(ctx, port)
 }
