@@ -28,7 +28,7 @@ func run() error {
 
 	portsStoreRepo := inmem.NewPortStore()
 	portService := services.NewPortService(portsStoreRepo)
-	httpServer := transport.NewHTTPServer(portService)
+	httpServer := transport.NewHttpServer(portService)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/port", httpServer.GetPort).Methods("GET")

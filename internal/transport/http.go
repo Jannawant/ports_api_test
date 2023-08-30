@@ -15,17 +15,17 @@ type PortService interface {
 	CreateOrUpdatePort(ctx context.Context, port *domain.Port) error
 }
 
-type HTTPServer struct {
+type HttpServer struct {
 	service PortService
 }
 
-func NewHTTPServer(service PortService) *HTTPServer {
-	return &HTTPServer{
+func NewHttpServer(service PortService) *HttpServer {
+	return &HttpServer{
 		service: service,
 	}
 }
 
-func (s *HTTPServer) GetPort(w http.ResponseWriter, r *http.Request) {
+func (s *HttpServer) GetPort(w http.ResponseWriter, r *http.Request) {
 	port, err := s.service.GetPort(r.Context(), r.URL.Query().Get("id"))
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
@@ -52,7 +52,7 @@ func (s *HTTPServer) GetPort(w http.ResponseWriter, r *http.Request) {
 	server.RespondOK(response, w, r)
 }
 
-func (s *HTTPServer) CountPorts(w http.ResponseWriter, r *http.Request) {
+func (s *HttpServer) CountPorts(w http.ResponseWriter, r *http.Request) {
 	count, err := s.service.CountPorts(r.Context())
 	if err != nil {
 		server.RespondWithError(err, w, r)
@@ -61,7 +61,7 @@ func (s *HTTPServer) CountPorts(w http.ResponseWriter, r *http.Request) {
 	server.RespondOK(map[string]int{"total": count}, w, r)
 }
 
-func (s HTTPServer) UploadPorts(w http.ResponseWriter, r *http.Request) {
+func (s HttpServer) UploadPorts(w http.ResponseWriter, r *http.Request) {
 	log.Println("upload ports")
 	portChan := make(chan Port)
 	errChan := make(chan error)
@@ -76,7 +76,7 @@ func (s HTTPServer) UploadPorts(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	portCounter := 0 
+	portCounter := 0
 	for {
 		select {
 		case <-r.Context().Done():
@@ -86,11 +86,11 @@ func (s HTTPServer) UploadPorts(w http.ResponseWriter, r *http.Request) {
 			log.Printf("finished reading ports")
 			server.RespondOK(map[string]int{"total_ports": portCounter}, w, r)
 			return
-		case err := <- errChan:
+		case err := <-errChan:
 			log.Printf("error while parsing port json: %+v", err)
 			server.BadRequest("invalid-json", err, w, r)
 			return
-		case port := <- portChan:
+		case port := <-portChan:
 			portCounter++
 			log.Printf("[%d] received port: %+v", portCounter, port)
 			p, err := portHttpToDomain(&port)
