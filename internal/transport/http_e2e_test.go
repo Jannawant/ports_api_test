@@ -68,6 +68,7 @@ func (suite *HttpTestSuite) TestUploadPorts() {
 	require.NoError(suite.T(), err)
 
 	require.Equal(suite.T(), http.StatusOK, res.StatusCode)
+	data = bytes.TrimRight(data, "\n")
 	require.Equal(suite.T(), portsResponse, data)
 
 	// count ports in storage
